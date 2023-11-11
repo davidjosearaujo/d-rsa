@@ -1,1 +1,1 @@
-# d-rsa
+# Deterministic RSA key generation
