@@ -12,6 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-fn RandByteGen((password, confusionString, rounds):(&str, &str, u32)) {
-    
-}
+// TODO:
+//  User options:
+//      - Speed test
+//      - Generate and print random bytes to stdout
+//      - Produce charts
+//
+//  User input:
+//      - Password
+//      - Confusion string
+//      - Iteration count
