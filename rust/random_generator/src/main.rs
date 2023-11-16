@@ -1,5 +1,28 @@
 use argon2::Argon2;
+use chacha20::cipher::{KeyIvInit, StreamCipher};
+use chacha20::ChaCha20;
 use sha2::{Digest, Sha256};
+
+fn byte_generator(seed: &[u8], confusion_pattern: &[u8]) -> Vec<u8> {
+    let nonce = [0x00; 12];
+
+    let mut cipher = ChaCha20::new(seed.into(), &nonce.into());
+    let mut buffer = seed.to_vec();
+
+    let mut res = Vec::new();
+    let mut found = false;
+
+    loop {
+        cipher.apply_keystream(&mut buffer);
+        res.extend(buffer.clone());
+        
+        // TODO:
+        //  - Check existence of confusion pattern and break if found
+        //  - Whatever is there beyond the pattern is the next seed 
+    }
+
+    buffer
+}
 
 fn create_confusion_pattern(confusion_string: &str) -> Vec<u8> {
     let mut sha256 = Sha256::new();
@@ -21,23 +44,26 @@ fn create_confusion_pattern(confusion_string: &str) -> Vec<u8> {
 }
 
 fn rand_byte_gen(password: &str, confusion_string: &str, _rounds: u32, length: usize) {
+    let mut sha256 = Sha256::new();
+    sha256.update(confusion_string);
+
     // Adjust the size of the seed array based on the desired length
     let mut seed = vec![0_u8; length];
     let _ = Argon2::default().hash_password_into(
         password.as_bytes(),
-        confusion_string.as_bytes(),
+        &sha256.clone().finalize(),
         &mut seed,
     );
+    sha256.reset();
     println!("Seed: {:02X?}", seed);
 
     let confusion_pattern = create_confusion_pattern(confusion_string);
     println!("Confusion Pattern: {:02X?}", confusion_pattern);
 
-    // TODO:
-    //  - What is the optimal length of the seed?
-    //  - Confusion string length equal to what?
+    let buffer_cipher = byte_generator(&seed, &confusion_pattern);
+    println!("Buffer cipher: {:02X?}", buffer_cipher);
 }
 
 fn main() {
-    rand_byte_gen("password", "asdaasda", 10000, 32);
+    rand_byte_gen("password1", "as", 10000, 32);
 }
