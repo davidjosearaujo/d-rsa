@@ -1,13 +1,15 @@
 [package]
-name = "random_generator"
+name = "random_generador"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cipher = "0.4.4"
 hex = "0.4.3"
 pbkdf2 = "0.12.2"
 rc4 = "0.1.0"
 sha2 = "0.10.8"
+
+[profile.dev]
+opt-level = 3

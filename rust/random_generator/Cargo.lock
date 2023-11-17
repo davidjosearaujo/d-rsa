@@ -108,10 +108,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "random_generator"
+name = "random_generador"
 version = "0.1.0"
 dependencies = [
- "cipher",
  "hex",
  "pbkdf2",
  "rc4",
