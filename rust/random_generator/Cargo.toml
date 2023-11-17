@@ -6,6 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-argon2 = "0.5.2"
-chacha20 = "0.9.1"
+cipher = "0.4.4"
+pbkdf2 = "0.12.2"
+rc4 = "0.1.0"
 sha2 = "0.10.8"
