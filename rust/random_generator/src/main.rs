@@ -11,5 +11,8 @@ fn main() {
     let byte_length = args[4].parse::<usize>().unwrap();
     let byte_amount = args[5].parse::<usize>().unwrap();
 
-    random_generator::rand_byte_gen(password, confusion_string, rounds, byte_length, byte_amount);
+    let buffer = random_generator::rand_byte_gen(password, confusion_string, rounds, byte_length, byte_amount);
+
+    // TESTING
+    println!("{:?}", buffer);
 }

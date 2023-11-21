@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use hex;
 use pbkdf2::pbkdf2_hmac;
 use rc4::{consts::*, KeyInit, StreamCipher};
 use rc4::{Key, Rc4};
@@ -66,7 +65,7 @@ pub fn rand_byte_gen(
     rounds: u32,
     seed_length: usize,
     byte_amount: usize,
-) {
+) -> Vec<u8> {
     let mut sha256 = Sha256::new();
     sha256.update(confusion_string);
 
@@ -91,5 +90,5 @@ pub fn rand_byte_gen(
     let mut buffer = vec![0_u8; byte_amount];
     rc4.apply_keystream(&mut buffer);
 
-    println!("{}", hex::encode(buffer));
+    buffer
 }
