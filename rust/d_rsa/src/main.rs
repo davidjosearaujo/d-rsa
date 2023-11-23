@@ -101,12 +101,17 @@ fn main() {
     // Calculate modulus
     let n = big_prime_p.clone() * big_prime_q.clone();
 
+    // Calculate e
     let mut e = 2u32;
     e = e.pow(16) + 1;
 
+    // Carmichael's totient function
     let lambda_n = carmichael(big_prime_p, big_prime_q);
 
-    println!("{}", lambda_n);
+    // TODO:
+    //  - Calculate d
+
+    println!("{}", d);
 
     // TODO:
     //  - Private key
