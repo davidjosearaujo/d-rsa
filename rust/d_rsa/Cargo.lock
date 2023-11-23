@@ -15,6 +15,7 @@ dependencies = [
  "hex",
  "is_prime",
  "num-bigint",
+ "num-traits",
 ]
 
 [[package]]

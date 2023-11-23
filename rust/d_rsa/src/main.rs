@@ -16,18 +16,45 @@
 // To use d_rsa with other sources of random data, like /dev/urandom,
 // you can call it like:
 //
+// - /dev/urandom
 //  $ hexdump -vn256 -e'"%08X"' /dev/urandom | d_rsa
 //
-// or with openssl like:
-//
+// - Openssl:
 //  $ openssl rand -hex 256 | d_rsa
+//
+// - random_generator:
+//  $ random_generator password cs 100 32 256 | d_rsa
 //
 // This is necessary as d_rsa only accepts hex string as input.
 
 use hex;
 use is_prime::*;
 use num_bigint::BigUint;
+use num_traits::*;
+use std::cmp::max;
 use std::io;
+
+// Function to calculate the greatest common divisor (GCD)
+fn gcd(a: BigUint, b: BigUint) -> BigUint {
+    if b.is_zero() {
+        a
+    } else {
+        gcd(b.clone(), &a % &b)
+    }
+}
+
+fn carmichael(p: BigUint, q: BigUint) -> BigUint {
+    let phi_p = p.clone() - 1u32;
+    let phi_q = q.clone() - 1u32;
+
+    if p.is_zero() || q.is_zero() {
+        BigUint::from_bytes_be(b"0")
+    } else {
+        // LCM(a, b) = |a * b| / GCD(a, b)
+        let lcm_product = &p / gcd(phi_p.clone(), phi_q.clone()) * &q;
+        max(lcm_product.clone(), lcm_product.clone()) // Ensure a positive result
+    }
+}
 
 fn turn_prime(number: &mut Vec<u8>) -> BigUint {
     // Turn prime
@@ -71,12 +98,24 @@ fn main() {
     let big_prime_p = turn_prime(&mut p_vec);
     let big_prime_q = turn_prime(&mut q_vec);
 
+    // Calculate modulus
+    let n = big_prime_p.clone() * big_prime_q.clone();
+
+    let mut e = 2u32;
+    e = e.pow(16) + 1;
+
+    let lambda_n = carmichael(big_prime_p, big_prime_q);
+
+    println!("{}", lambda_n);
+
     // TODO:
-    //  - Compute n = pq
-    //  - Compute lambda(n), where lambda is Carmichael's totient function.
-    //  - Choose an integer e such that 2 < e < lambda(n) and gcd(e, lambda(n)) = 1, e and lambda(n) are coprime
-    //  - Determine d as d = e⁻¹(mod lambda(n))
+    //  - Private key
+    //      - d
     // 
+    //  - Public key
+    //      - n
+    //      - e
+    //
     // READ:
     //  - https://medium.com/snips-ai/prime-number-generation-2a02f28508ff
 }

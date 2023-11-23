@@ -9,6 +9,7 @@ edition = "2021"
 hex = "0.4.3"
 is_prime = "2.0.9"
 num-bigint = "0.4.4"
+num-traits = "0.2.17"
 
 [profile.dev]
 opt-level = 1
