@@ -76,4 +76,7 @@ fn main() {
     //  - Compute lambda(n), where lambda is Carmichael's totient function.
     //  - Choose an integer e such that 2 < e < lambda(n) and gcd(e, lambda(n)) = 1, e and lambda(n) are coprime
     //  - Determine d as d = e⁻¹(mod lambda(n))
+    // 
+    // READ:
+    //  - https://medium.com/snips-ai/prime-number-generation-2a02f28508ff
 }
