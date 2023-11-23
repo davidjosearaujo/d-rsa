@@ -25,32 +25,53 @@
 // This is necessary as d_rsa only accepts hex string as input.
 
 use hex;
+use is_prime::*;
+use num_bigint::BigUint;
 use std::io;
 
-fn turn_prime(number: &mut Vec<u8>) {
+fn turn_prime(number: &mut Vec<u8>) -> BigUint {
     // Turn prime
     //  1. LSB to 1
     //  2. Add 2 until it passes primality tests
+
+    // Bitwise OR turns the LSB to 1
+    let len = number.len();
+    number[len - 1] |= 0b00000001;
+
+    // Turn vector into a Big Unsigned Number
+    let mut big_number = BigUint::from_radix_be(number, 256).unwrap();
+
+    // Increase the number until a prime number is found
+    loop {
+        // Uses the Miller-Rabin primality test algorithm
+        if is_prime(&big_number.to_string()) {
+            break;
+        }
+        big_number += 2u32;
+    }
+
+    big_number
 }
 
 fn main() {
     let mut input = String::new();
-    let n = io::stdin().read_line(&mut input).unwrap();
+    let _ = io::stdin().read_line(&mut input).unwrap();
 
     // Cast hex string into array of bytes
-    let random_bytes = hex::decode(input).unwrap();
+    let random_bytes = hex::decode(input.trim()).unwrap();
 
     // Split the array in half for p and q variables
-    let mut p = &random_bytes[0..random_bytes.len() / 2];
-    let mut q = &random_bytes[random_bytes.len() / 2..];
+    let (p, q) = random_bytes.split_at(random_bytes.len() / 2);
+
+    // Turn into mutable vectors
+    let mut p_vec = p.to_vec();
+    let mut q_vec = q.to_vec();
+
+    // Turn p and q into prime numbers
+    let big_prime_p = turn_prime(&mut p_vec);
+    let big_prime_q = turn_prime(&mut q_vec);
 
     // TODO:
-    //  - Read two a large prime number from the random_generator and find two prime number from it,
-    //      this can be accomplished by simply reading 256 bytes and using half of that for each
-    //      variable p and q.
-    //      -   https://docs.rs/is_prime/latest/is_prime/
-    //      -   https://docs.rs/num-bigint/latest/num_bigint/
-    //      -   https://medium.com/snips-ai/prime-number-generation-2a02f28508ff
     //  - Compute n = pq
     //  - Compute lambda(n), where lambda is Carmichael's totient function.
     //  - Choose an integer e such that 2 < e < lambda(n) and gcd(e, lambda(n)) = 1, e and lambda(n) are coprime
