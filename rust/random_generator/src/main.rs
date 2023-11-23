@@ -27,5 +27,5 @@ fn main() {
         byte_amount,
     );
 
-    println!("{}", hex::encode(buffer));
+    print!("{}", hex::encode(buffer));
 }
