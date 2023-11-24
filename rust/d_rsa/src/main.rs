@@ -188,26 +188,11 @@ fn main() {
     // Carmichael's totient function
     let lambda_n = carmichael(big_prime_p, big_prime_q);
 
-    // TODO:
-    //  - Calculate d
-    let d = e.clone().mod_inverse(&n).unwrap();
+    let d = e.clone().mod_inverse(&lambda_n).unwrap();
     
     let pk = PublicKey::new(&n, &e).unwrap();
     let sk = SecretKey::new(&n, &d.to_biguint().unwrap()).unwrap();
 
     let kp = KeyPair::new(&pk, &sk).unwrap();
     kp.print();
-
-    // TODO:
-    //  - Private key
-    //      - n
-    //      - d
-    //
-    //  - Public key
-    //      - n
-    //      - e
-    //
-    // READ:
-    //  - https://medium.com/snips-ai/prime-number-generation-2a02f28508ff
-    //  - https://github.com/CPerezz/rust-rsa/blob/master/src/helpers/generics.rs
 }
