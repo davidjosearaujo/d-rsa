@@ -37,6 +37,7 @@ use std::io;
 use std::str::from_utf8;
 use std::fs::File;
 use std::io::Write;
+use base64::{engine::general_purpose, Engine as _};
 
 fn carmichael(p: BigUint, q: BigUint) -> BigUint {
     let phi_p = p.clone() - 1u32;
@@ -93,7 +94,7 @@ pub struct SecretKey {
 
 macro_rules! encode_to_print {
     ($big_num: expr) => {
-        encode(&$big_num.to_radix_be(16u32)).as_bytes()
+        general_purpose::STANDARD.encode(&$big_num.to_radix_be(16u32)).as_bytes()
     };
 }
 
@@ -129,8 +130,8 @@ impl KeyPair {
     }
 
     pub fn print(&self) {
-        let mut pk_file = File::create("rsa_pk.key").unwrap();
-        let mut sk_file = File::create("rsa_sk.key").unwrap();
+        let mut pk_file = File::create("rsa_pk.pem").unwrap();
+        let mut sk_file = File::create("rsa_sk.pub").unwrap();
         //Ask for encoded params and write.
         let (pk, sk) = prepare_to_print(&self);
         pk_file.write_all(pk.as_bytes()).unwrap();
