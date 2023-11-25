@@ -38,6 +38,7 @@ dependencies = [
  "num-bigint-dig",
  "num-integer",
  "num-traits",
+ "range",
 ]
 
 [[package]]
@@ -205,6 +206,12 @@ checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 dependencies = [
  "getrandom",
 ]
+
+[[package]]
+name = "range"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5b851d7223b2adbc5d30dea12eeaf45dd58c81559656e056d31ff7d5407ba6f1"
 
 [[package]]
 name = "serde"

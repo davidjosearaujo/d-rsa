@@ -13,19 +13,19 @@
 // limitations under the License.
 
 // *** ATTENTION ***
-// To use d_rsa with other sources of random data, like /dev/urandom,
-// you can call it like:
+// To use d_rsa with other sources of random data, like /dev/urandom or OpenSSL,
+// you must call it like:
 //
 // - /dev/urandom
 //  $ hexdump -vn256 -e'"%08X"' /dev/urandom | d_rsa
 //
-// - Openssl:
+// - OpenSSL:
 //  $ openssl rand -hex 256 | d_rsa
 //
 // - random_generator:
 //  $ random_generator password cs 100 32 256 | d_rsa
 //
-// This is necessary as d_rsa only accepts hex string as input.
+// This is necessary as d_rsa only accepts hex string as input!!.
 
 use is_prime::*;
 use num_bigint_dig::BigUint;
@@ -67,8 +67,8 @@ impl KeyPair {
     }
 
     pub fn print(&self) {
-        let mut pk_file = File::create("rsa_pk.pem").unwrap();
-        let mut sk_file = File::create("rsa_sk.pub").unwrap();
+        let mut pk_file = File::create("rsa_pk.pub").unwrap();
+        let mut sk_file = File::create("rsa_sk.pem").unwrap();
         //Ask for encoded params and write.
         let (pk, sk) = prepare_to_print(&self);
         pk_file.write_all(pk.as_bytes()).unwrap();
@@ -96,30 +96,43 @@ impl SecretKey {
     }
 }
 
-macro_rules! encode_to_print {
-    ($big_num: expr) => {
-        general_purpose::STANDARD.encode(&$big_num.to_radix_be(16u32)).as_bytes()
-    };
-}
-
 pub fn prepare_to_print(kp: &KeyPair) -> (String, String) {
     let (mut encoded_pk, mut encoded_sk) = (String::new(), String::new());
+
     // Encoding Public Key
     encoded_pk.push_str("---------- BEGIN RSA PUBLIC KEY ----------");
     encoded_pk.push_str("\n");
-    encoded_pk.push_str(from_utf8(encode_to_print!(&kp.pk.n)).unwrap());
-    encoded_pk.push_str("\n");
-    encoded_pk.push_str(from_utf8(encode_to_print!(&kp.pk.e)).unwrap());
-    encoded_pk.push_str("\n");
+    let mut binding = general_purpose::STANDARD.encode(&kp.pk.n.to_radix_be(16u32));
+    let mut priv_n = from_utf8(binding.as_bytes()).unwrap();
+    for i in (64..priv_n.len()).step_by(64) {
+        encoded_pk.push_str(&priv_n[i-64..i]);
+        encoded_pk.push_str("\n");
+    }
+
+    binding = general_purpose::STANDARD.encode(&kp.pk.e.to_radix_be(16u32));
+    priv_n = from_utf8(binding.as_bytes()).unwrap();
+    for i in (64..priv_n.len()).step_by(64) {
+        encoded_pk.push_str(&priv_n[i-64..i]);
+        encoded_pk.push_str("\n");
+    } 
     encoded_pk.push_str("----------- END RSA PUBLIC KEY -----------");
     
     // Encoding Secret Key
     encoded_sk.push_str("---------- BEGIN RSA PRIVATE KEY ----------");
     encoded_sk.push_str("\n");
-    encoded_sk.push_str(from_utf8(encode_to_print!(&kp.sk.n)).unwrap());
-    encoded_sk.push_str("\n");
-    encoded_sk.push_str(from_utf8(encode_to_print!(&kp.sk.d)).unwrap());
-    encoded_sk.push_str("\n");
+    binding = general_purpose::STANDARD.encode(&kp.sk.n.to_radix_be(16u32));
+    priv_n = from_utf8(binding.as_bytes()).unwrap();
+    for i in (64..priv_n.len()).step_by(64) {
+        encoded_sk.push_str(&priv_n[i-64..i]);
+        encoded_sk.push_str("\n");
+    }
+
+    binding = general_purpose::STANDARD.encode(&kp.sk.d.to_radix_be(16u32));
+    priv_n = from_utf8(binding.as_bytes()).unwrap();
+    for i in (64..priv_n.len()).step_by(64) {
+        encoded_sk.push_str(&priv_n[i-64..i]);
+        encoded_sk.push_str("\n");
+    }
     encoded_sk.push_str("----------- END RSA PRIVATE KEY -----------");
     (encoded_pk, encoded_sk)
 }
@@ -187,6 +200,7 @@ fn main() {
     // Carmichael's totient function
     let lambda_n = carmichael(big_prime_p, big_prime_q);
 
+    // Inverse modulus of ƛ(n)
     let d = e.clone().mod_inverse(&lambda_n).unwrap();
     
     let pk = PublicKey::new(&n, &e).unwrap();
