@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 
 def speed():
     x1_rounds = [x for x in range(0,10000,100)]
-    x2_confusionstring = string.ascii_letters[:5]
+    x2_confusionstring = string.ascii_letters[:4]
     
     # Testing for increasing number of rounds with confusion string of size 2
     y1_roundstime = []
