@@ -27,7 +27,6 @@
 //
 // This is necessary as d_rsa only accepts hex string as input.
 
-use hex::encode;
 use is_prime::*;
 use num_bigint_dig::BigUint;
 use num_bigint_dig::ModInverse;
@@ -38,6 +37,92 @@ use std::str::from_utf8;
 use std::fs::File;
 use std::io::Write;
 use base64::{engine::general_purpose, Engine as _};
+
+
+#[derive(Clone, PartialEq, Debug)]
+pub struct KeyPair {
+    pub pk: PublicKey,
+    pub sk: SecretKey,
+}
+
+#[derive(Clone, PartialEq, Debug)]
+pub struct PublicKey {
+    pub n: BigUint,
+    pub e: BigUint,
+}
+
+#[derive(Clone, PartialEq, Debug)]
+pub struct SecretKey {
+    pub n: BigUint,
+    pub d: BigUint,
+}
+
+impl KeyPair {
+    pub fn new(_pk: &PublicKey, _sk: &SecretKey) -> Result<Self, &'static str> {
+        let kp = KeyPair {
+            pk: _pk.to_owned(),
+            sk: _sk.to_owned(),
+        };
+        Ok(kp)
+    }
+
+    pub fn print(&self) {
+        let mut pk_file = File::create("rsa_pk.pem").unwrap();
+        let mut sk_file = File::create("rsa_sk.pub").unwrap();
+        //Ask for encoded params and write.
+        let (pk, sk) = prepare_to_print(&self);
+        pk_file.write_all(pk.as_bytes()).unwrap();
+        sk_file.write_all(sk.as_bytes()).unwrap();
+    }
+}
+
+impl PublicKey {
+    /// Generate a PublicKey struct from n and d co-prime factors.
+    pub fn new(_n: &BigUint, _e: &BigUint) -> Result<Self, &'static str> {
+        Ok(PublicKey {
+            n: _n.to_owned(),
+            e: _e.to_owned(),
+        })
+    }
+}
+
+impl SecretKey {
+    /// Generate a SecretKey struct from n and d co-prime factors.
+    pub fn new(_n: &BigUint, _d: &BigUint) -> Result<Self, &'static str> {
+        Ok(SecretKey {
+            n: _n.to_owned(),
+            d: _d.to_owned()
+        })
+    }
+}
+
+macro_rules! encode_to_print {
+    ($big_num: expr) => {
+        general_purpose::STANDARD.encode(&$big_num.to_radix_be(16u32)).as_bytes()
+    };
+}
+
+pub fn prepare_to_print(kp: &KeyPair) -> (String, String) {
+    let (mut encoded_pk, mut encoded_sk) = (String::new(), String::new());
+    // Encoding Public Key
+    encoded_pk.push_str("---------- BEGIN RSA PUBLIC KEY ----------");
+    encoded_pk.push_str("\n");
+    encoded_pk.push_str(from_utf8(encode_to_print!(&kp.pk.n)).unwrap());
+    encoded_pk.push_str("\n");
+    encoded_pk.push_str(from_utf8(encode_to_print!(&kp.pk.e)).unwrap());
+    encoded_pk.push_str("\n");
+    encoded_pk.push_str("----------- END RSA PUBLIC KEY -----------");
+    
+    // Encoding Secret Key
+    encoded_sk.push_str("---------- BEGIN RSA PRIVATE KEY ----------");
+    encoded_sk.push_str("\n");
+    encoded_sk.push_str(from_utf8(encode_to_print!(&kp.sk.n)).unwrap());
+    encoded_sk.push_str("\n");
+    encoded_sk.push_str(from_utf8(encode_to_print!(&kp.sk.d)).unwrap());
+    encoded_sk.push_str("\n");
+    encoded_sk.push_str("----------- END RSA PRIVATE KEY -----------");
+    (encoded_pk, encoded_sk)
+}
 
 fn carmichael(p: BigUint, q: BigUint) -> BigUint {
     let phi_p = p.clone() - 1u32;
@@ -72,92 +157,6 @@ fn turn_prime(number: &mut Vec<u8>) -> BigUint {
     }
 
     big_number
-}
-
-#[derive(Clone, PartialEq, Debug)]
-pub struct KeyPair {
-    pub pk: PublicKey,
-    pub sk: SecretKey,
-}
-
-#[derive(Clone, PartialEq, Debug)]
-pub struct PublicKey {
-    pub n: BigUint,
-    pub e: BigUint,
-}
-
-#[derive(Clone, PartialEq, Debug)]
-pub struct SecretKey {
-    pub n: BigUint,
-    pub d: BigUint,
-}
-
-macro_rules! encode_to_print {
-    ($big_num: expr) => {
-        general_purpose::STANDARD.encode(&$big_num.to_radix_be(16u32)).as_bytes()
-    };
-}
-
-pub fn prepare_to_print(kp: &KeyPair) -> (String, String) {
-    let (mut encoded_pk, mut encoded_sk) = (String::new(), String::new());
-    // Encoding Public Key
-    encoded_pk.push_str("---------- BEGIN RSA PUBLIC KEY ----------");
-    encoded_pk.push_str("\n");
-    encoded_pk.push_str(from_utf8(encode_to_print!(&kp.pk.n)).unwrap());
-    encoded_pk.push_str("\n");
-    encoded_pk.push_str(from_utf8(encode_to_print!(&kp.pk.e)).unwrap());
-    encoded_pk.push_str("\n");
-    encoded_pk.push_str("----------- END RSA PUBLIC KEY -----------");
-    
-    // Encoding Secret Key
-    encoded_sk.push_str("---------- BEGIN RSA PRIVATE KEY ----------");
-    encoded_sk.push_str("\n");
-    encoded_sk.push_str(from_utf8(encode_to_print!(&kp.sk.n)).unwrap());
-    encoded_sk.push_str("\n");
-    encoded_sk.push_str(from_utf8(encode_to_print!(&kp.sk.d)).unwrap());
-    encoded_sk.push_str("\n");
-    encoded_sk.push_str("----------- END RSA PRIVATE KEY -----------");
-    (encoded_pk, encoded_sk)
-}
-
-impl KeyPair {
-    pub fn new(_pk: &PublicKey, _sk: &SecretKey) -> Result<Self, &'static str> {
-        let kp = KeyPair {
-            pk: _pk.to_owned(),
-            sk: _sk.to_owned(),
-        };
-        Ok(kp)
-    }
-
-    pub fn print(&self) {
-        let mut pk_file = File::create("rsa_pk.pem").unwrap();
-        let mut sk_file = File::create("rsa_sk.pub").unwrap();
-        //Ask for encoded params and write.
-        let (pk, sk) = prepare_to_print(&self);
-        pk_file.write_all(pk.as_bytes()).unwrap();
-        sk_file.write_all(sk.as_bytes()).unwrap();
-    }
-}
-
-
-impl PublicKey {
-    /// Generate a PublicKey struct from n and d co-prime factors.
-    pub fn new(_n: &BigUint, _e: &BigUint) -> Result<Self, &'static str> {
-        Ok(PublicKey {
-            n: _n.to_owned(),
-            e: _e.to_owned(),
-        })
-    }
-}
-
-impl SecretKey {
-    /// Generate a SecretKey struct from n and d co-prime factors.
-    pub fn new(_n: &BigUint, _d: &BigUint) -> Result<Self, &'static str> {
-        Ok(SecretKey {
-            n: _n.to_owned(),
-            d: _d.to_owned()
-        })
-    }
 }
 
 fn main() {
