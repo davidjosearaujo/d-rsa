@@ -14,6 +14,7 @@
 
 import argparse
 import string
+import os
 import time
 import subprocess
 import matplotlib.pyplot as plt
@@ -37,13 +38,14 @@ def speed():
             stdout = subprocess.DEVNULL
         )
         y1_roundstime.append(time.time_ns() - start)
-        # TODO Haskell
+        # TODO: Haskell
     
     plt.subplot(1, 2, 1)
-    plt.plot(x1_rounds, y1_roundstime, label="rust")
+    plt.plot(x1_rounds, y1_roundstime, label="Rust")
     plt.xlabel("Number of rounds")
     plt.ylabel("Time")
-    plt.title("Round increase")
+    plt.title("Round increase effect")
+    plt.legend()
          
     # Testing for increasing size of confusion string and 100 rounds
     y2_confusionstringtime = []
@@ -62,13 +64,15 @@ def speed():
         )
         y2_confusionstringtime.append(time.time_ns() - start)
         x2_confusionstringarray.append(x2_confusionstring[:x2])
-        # TODO Haskell
+        # TODO: Haskell
             
     plt.subplot(1, 2, 2)
-    plt.title("Confusion string size increase")
+    plt.title("Confusion string size effect")
     plt.xlabel("Confusion string size")
     plt.ylabel("Time")
-    plt.plot(x2_confusionstringarray, y2_confusionstringtime, label="rust")
+    plt.yscale("log")
+    plt.plot(x2_confusionstringarray, y2_confusionstringtime, label="Rust")
+    plt.legend()
     
     plt.show()
     
@@ -76,6 +80,7 @@ def speed():
     
 def stdout():
     # Must call random generator to return 256 bytes (2048 bits)
+    print("Rust STDOUT: ", end="")
     subprocess.run(
         ['./rust/random_generator/target/release/random_generator',
         'password1',
@@ -84,6 +89,8 @@ def stdout():
         '32',
         '256'],
     )
+    
+    # TODO: Haskell
 
 #def graphs():
 
@@ -103,6 +110,10 @@ if __name__ == "__main__":
     )
     
     args = parser.parse_args()
+    
+    # Ensure the binaries are compiled and optimized
+    os.system("cd rust/random_generator && cargo build --release -q")
+    os.system("cd rust/d_rsa && cargo build --release -q")
     
     if args.speed:
         speed()
