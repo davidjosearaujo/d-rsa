@@ -40,25 +40,6 @@ fn complex_seed_generator(seed: &[u8], confusion_pattern: &[u8], rounds: u32) ->
     seedx.to_vec()
 }
 
-fn create_confusion_pattern(confusion_string: &str) -> Vec<u8> {
-    let mut sha256 = Sha256::new();
-
-    // Initialize a Vec<u8> to store the final confusion pattern
-    let mut confusion_pattern = Vec::new();
-
-    let chunk_size = 256;
-    for chunk in confusion_string.as_bytes().chunks(chunk_size) {
-        sha256.update(chunk);
-        confusion_pattern.extend_from_slice(&sha256.clone().finalize());
-        sha256.reset();
-    }
-
-    // Trim the confusion pattern to match the length of the input string
-    confusion_pattern.truncate(confusion_string.len());
-
-    confusion_pattern
-}
-
 pub fn rand_byte_gen(
     password: &str,
     confusion_string: &str,
@@ -79,7 +60,7 @@ pub fn rand_byte_gen(
     );
 
     // Create confusion pattern base on confusion string
-    let confusion_pattern = create_confusion_pattern(confusion_string);
+    let confusion_pattern = &sha256.clone().finalize()[..confusion_string.len()];
 
     // Compute a complex seed
     let complex_seed = complex_seed_generator(&seed, &confusion_pattern, rounds);
