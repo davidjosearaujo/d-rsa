@@ -17,7 +17,7 @@ use rc4::{consts::*, KeyInit, StreamCipher};
 use rc4::{Key, Rc4};
 use sha2::{Digest, Sha256};
 
-fn is_sub<T: PartialEq>(haystack: &[T], needle: &[T]) -> bool {
+fn contains<T: PartialEq>(haystack: &[T], needle: &[T]) -> bool {
     haystack.windows(needle.len()).any(|c| c == needle)
 }
 
@@ -30,11 +30,13 @@ fn complex_seed_generator(seed: &[u8], confusion_pattern: &[u8], rounds: u32) ->
         let mut rc4 = Rc4::<_>::new(key);
         loop {
             rc4.apply_keystream(&mut buffer);
-            if is_sub(&buffer, confusion_pattern) {
+            if contains(&buffer, confusion_pattern) {
                 seedx = buffer.clone();
                 break;
             }
+            
         }
+        
     }
 
     seedx.to_vec()
