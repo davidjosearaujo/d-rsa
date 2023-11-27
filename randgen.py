@@ -20,59 +20,91 @@ import subprocess
 import matplotlib.pyplot as plt
 
 def speed():
-    x1_rounds = [x for x in range(0,10000,100)]
-    x2_confusionstring = string.ascii_letters[:4]
+    x1_rounds = [x for x in range(1,1000,100)]
+    x1_confusionstring = string.ascii_letters[:4]
     
     # Testing for increasing number of rounds with confusion string of size 2
     y1_roundstime = []
+    y2_roundstime = []
+    print("[+] Round testing...")
     for x1 in x1_rounds:
         # Rust
         start = time.time_ns()
         subprocess.run(
             ['./rust/random_generator/target/release/random_generator',
              'password1',
-             'cs',
+             'cf',
              str(x1),
              '32',
              '256'],
             stdout = subprocess.DEVNULL
         )
         y1_roundstime.append(time.time_ns() - start)
-        # TODO: Haskell
+        
+        # Python
+        start = time.time_ns()
+        rounds_py = '--rounds=' + str(x1)
+        subprocess.run(
+            ['./python/random_generator/bin/random_generator',
+             rounds_py
+             ],
+            stdout = subprocess.DEVNULL
+        )
+        y2_roundstime.append(time.time_ns() - start)
+        
     
     plt.subplot(1, 2, 1)
     plt.plot(x1_rounds, y1_roundstime, label="Rust")
+    plt.plot(x1_rounds, y2_roundstime, label="Python")
     plt.xlabel("Number of rounds")
     plt.ylabel("Time")
     plt.title("Round increase effect")
     plt.legend()
+    
+    print("[!] Round testing complete!")
+    print("[+] Confusion string size testing...")
          
     # Testing for increasing size of confusion string and 100 rounds
+    y1_confusionstringtime = []
+    x1_confusionstringarray = []
+    
     y2_confusionstringtime = []
-    x2_confusionstringarray = []
-    for x2 in range(1, len(x2_confusionstring)):
+    for x2 in range(1, len(x1_confusionstring)):
         # Rust
         start = time.time_ns()
         subprocess.run(
             ['./rust/random_generator/target/release/random_generator',
-             'password1',
-             x2_confusionstring[:x2],
+             'password2',
+             x1_confusionstring[:x2],
              '100',
              '32',
              '256'],
             stdout = subprocess.DEVNULL
         )
+        y1_confusionstringtime.append(time.time_ns() - start)
+        x1_confusionstringarray.append(x1_confusionstring[:x2])
+        
+        # Python
+        start = time.time_ns()
+        cf_arg = '--confusion_string='+str(x1_confusionstring[:x2])
+        subprocess.run(
+            ['./python/random_generator/bin/random_generator',
+             cf_arg
+             ],
+            stdout = subprocess.DEVNULL
+        )
         y2_confusionstringtime.append(time.time_ns() - start)
-        x2_confusionstringarray.append(x2_confusionstring[:x2])
-        # TODO: Haskell
             
     plt.subplot(1, 2, 2)
     plt.title("Confusion string size effect")
-    plt.xlabel("Confusion string size")
+    plt.xlabel("Confusion string")
     plt.ylabel("Time")
     plt.yscale("log")
-    plt.plot(x2_confusionstringarray, y2_confusionstringtime, label="Rust")
+    plt.plot(x1_confusionstringarray, y1_confusionstringtime, label="Rust")
+    plt.plot(x1_confusionstringarray, y2_confusionstringtime, label="Python")
     plt.legend()
+    
+    print("[!] Confusion string size testing complete!")
     
     plt.show()
     
@@ -80,19 +112,23 @@ def speed():
     
 def stdout():
     # Must call random generator to return 256 bytes (2048 bits)
-    print("Rust STDOUT: ", end="")
+    
+    # Rust
     subprocess.run(
         ['./rust/random_generator/target/release/random_generator',
-        'password1',
-        'cs',
-        '10',
+        'password',
+        'cf',
+        '100',
         '32',
         '256'],
     )
     
-    # TODO: Haskell
+    # Python
+    print("\n")
+    subprocess.run(
+        ['./python/random_generator/bin/random_generator'],
+    )
 
-#def graphs():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -110,10 +146,6 @@ if __name__ == "__main__":
     )
     
     args = parser.parse_args()
-    
-    # Ensure the binaries are compiled and optimized
-    os.system("cd rust/random_generator && cargo build --release -q")
-    os.system("cd rust/d_rsa && cargo build --release -q")
     
     if args.speed:
         speed()
