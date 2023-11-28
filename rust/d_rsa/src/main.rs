@@ -23,7 +23,7 @@
 //  $ openssl rand -hex 256 | d_rsa
 //
 // - random_generator:
-//  $ random_generator password cs 100 32 256 | d_rsa
+//  $ random_generator password cf 100 32 256 | d_rsa
 //
 // This is necessary as d_rsa only accepts hex string as input!!.
 
@@ -102,14 +102,16 @@ pub fn prepare_to_print(kp: &KeyPair) -> (String, String) {
     // Encoding Public Key
     encoded_pk.push_str("---------- BEGIN RSA PUBLIC KEY ----------");
     encoded_pk.push_str("\n");
-    let mut binding = general_purpose::STANDARD.encode(&kp.pk.n.to_radix_be(16u32));
+    let mut binding = general_purpose::STANDARD.encode(&kp.pk.n.to_bytes_be());
     let mut priv_n = from_utf8(binding.as_bytes()).unwrap();
+    println!("{}", kp.pk.n.to_string());
+    println!("{:02x?}", kp.pk.n.to_bytes_be());
     for i in (64..priv_n.len()).step_by(64) {
         encoded_pk.push_str(&priv_n[i-64..i]);
         encoded_pk.push_str("\n");
     }
 
-    binding = general_purpose::STANDARD.encode(&kp.pk.e.to_radix_be(16u32));
+    binding = general_purpose::STANDARD.encode(&kp.pk.e.to_bytes_be());
     priv_n = from_utf8(binding.as_bytes()).unwrap();
     for i in (64..priv_n.len()).step_by(64) {
         encoded_pk.push_str(&priv_n[i-64..i]);
@@ -120,14 +122,14 @@ pub fn prepare_to_print(kp: &KeyPair) -> (String, String) {
     // Encoding Secret Key
     encoded_sk.push_str("---------- BEGIN RSA PRIVATE KEY ----------");
     encoded_sk.push_str("\n");
-    binding = general_purpose::STANDARD.encode(&kp.sk.n.to_radix_be(16u32));
+    binding = general_purpose::STANDARD.encode(&kp.sk.n.to_bytes_be());
     priv_n = from_utf8(binding.as_bytes()).unwrap();
     for i in (64..priv_n.len()).step_by(64) {
         encoded_sk.push_str(&priv_n[i-64..i]);
         encoded_sk.push_str("\n");
     }
 
-    binding = general_purpose::STANDARD.encode(&kp.sk.d.to_radix_be(16u32));
+    binding = general_purpose::STANDARD.encode(&kp.sk.d.to_bytes_be());
     priv_n = from_utf8(binding.as_bytes()).unwrap();
     for i in (64..priv_n.len()).step_by(64) {
         encoded_sk.push_str(&priv_n[i-64..i]);
@@ -173,11 +175,11 @@ fn turn_prime(number: &mut Vec<u8>) -> BigUint {
 }
 
 fn main() {
-    let mut input = String::new();
-    let _ = io::stdin().read_line(&mut input).unwrap();
+    let mut received_stream = String::new();
+    let _ = io::stdin().read_line(&mut received_stream).unwrap();
 
     // Cast hex string into array of bytes
-    let random_bytes = hex::decode(input.trim()).unwrap();
+    let random_bytes = hex::decode(received_stream.trim()).unwrap();
 
     // Split the array in half for p and q variables
     let (p, q) = random_bytes.split_at(random_bytes.len() / 2);

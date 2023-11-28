@@ -110,4 +110,4 @@ if __name__ == "__main__":
         byte_amount=args.byte_amount
     )
     
-    print(str(binascii.hexlify(buffer), "utf-8"))
+    print(str(binascii.hexlify(buffer), "utf-8"), end="")
