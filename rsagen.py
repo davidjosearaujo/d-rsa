@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Usage
+#
+# hexdump -vn256 -e'"%08X"' /dev/urandom | python3 rsagen.py -py 
+
 import argparse
 import subprocess
 
