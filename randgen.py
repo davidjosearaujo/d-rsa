@@ -19,6 +19,7 @@ import time
 import subprocess
 import matplotlib.pyplot as plt
 
+# COMPLETE
 def speed():
     x1_rounds = [x for x in range(1,1000,100)]
     x1_confusionstring = string.ascii_letters[:4]
@@ -109,11 +110,12 @@ def speed():
     plt.show()
     
         
-    
+# COMPLETE
 def stdout():
     # Must call random generator to return 256 bytes (2048 bits)
     
     # Rust
+    print("Rust stdout: ")
     subprocess.run(
         ['./rust/random_generator/target/release/random_generator',
         'password',
@@ -123,13 +125,20 @@ def stdout():
         '256'],
     )
     
+
     # Python
-    print("\n")
+    print("\n\nPython stdout: ")
     subprocess.run(
-        ['./python/random_generator/bin/random_generator'],
+        ['python3',
+         'python/random_generator/random_generator.py',
+         '-pw=password',
+         '-cs=cf',
+         '-rd=100',
+         '-sl=32',
+         '-ba=256'],
     )
 
-
+# COMPLETE
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     

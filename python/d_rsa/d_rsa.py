@@ -22,8 +22,8 @@ class KeyPair:
         self.sk = sk
         
     def print(self):
-        pk_file = open("rsa_pk.pub", "w")
-        sk_file = open("rsa_sk.pem", "w")
+        pk_file = open("py_rsa_pk.pub", "w")
+        sk_file = open("py_rsa_sk.pem", "w")
         
         # Encoding factors of each key to Base64 stream
         pk_stream = self.pk.encode()
@@ -44,8 +44,7 @@ class KeyPair:
             sk_file.write("\n")
         sk_file.write("---------- END RSA PRIVATE KEY ----------")
         sk_file.close()
-        
-        
+                
 class PublicKey:
     def __init__(self, n, e):
         self.n = n

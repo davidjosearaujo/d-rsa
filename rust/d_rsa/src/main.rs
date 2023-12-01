@@ -67,8 +67,8 @@ impl KeyPair {
     }
 
     pub fn print(&self) {
-        let mut pk_file = File::create("rsa_pk.pub").unwrap();
-        let mut sk_file = File::create("rsa_sk.pem").unwrap();
+        let mut pk_file = File::create("rs_rsa_pk.pub").unwrap();
+        let mut sk_file = File::create("rs_rsa_sk.pem").unwrap();
         //Ask for encoded params and write.
         let (pk, sk) = prepare_to_print(&self);
         pk_file.write_all(pk.as_bytes()).unwrap();
@@ -104,8 +104,6 @@ pub fn prepare_to_print(kp: &KeyPair) -> (String, String) {
     encoded_pk.push_str("\n");
     let mut binding = general_purpose::STANDARD.encode(&kp.pk.n.to_bytes_be());
     let mut priv_n = from_utf8(binding.as_bytes()).unwrap();
-    println!("{}", kp.pk.n.to_string());
-    println!("{:02x?}", kp.pk.n.to_bytes_be());
     for i in (64..priv_n.len()).step_by(64) {
         encoded_pk.push_str(&priv_n[i-64..i]);
         encoded_pk.push_str("\n");
