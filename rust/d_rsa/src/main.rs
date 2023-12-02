@@ -29,14 +29,12 @@
 
 use is_prime::*;
 use std::io;
-use num_bigint_dig::BigUint;
-use num_bigint_dig::ToBigUint;
-use num_bigint_dig::ModInverse;
+use num_bigint_dig::{BigUint, ModInverse};
 use num_integer::Integer;
 use num_traits::*;
 use std::path::Path;
 use base64ct::LineEnding;
-use rsa::{RsaPrivateKey, RsaPublicKey};
+use rsa::RsaPrivateKey;
 use rsa::pkcs8::{EncodePrivateKey, EncodePublicKey};
 
 fn carmichael(p: BigUint, q: BigUint) -> BigUint {
@@ -92,9 +90,6 @@ fn main() {
     let big_prime_p = turn_prime(&mut p_vec);
     let big_prime_q = turn_prime(&mut q_vec);
 
-    // Calculate modulus
-    let n = big_prime_p.clone() * big_prime_q.clone();
-
     // Calculate e
     let mut e = BigUint::parse_bytes(b"2", 10).unwrap();
     e = e.pow(16u32) + 1u32;
@@ -103,7 +98,7 @@ fn main() {
     let lambda_n = carmichael(big_prime_p.clone(), big_prime_q.clone());
 
     // Inverse modulus of ƛ(n)
-    let d = e.clone().mod_inverse(&lambda_n).unwrap();
+    let _d = e.clone().mod_inverse(&lambda_n).unwrap();
     
     let sk = RsaPrivateKey::from_p_q(big_prime_p, big_prime_q, e.clone()).unwrap();
     let pk = sk.to_public_key();
@@ -112,7 +107,7 @@ fn main() {
     if sk.validate().unwrap() == () {
         let sk_path = Path::new("./rust.pem");
         let pk_path = Path::new("./rust.pub");
-        sk.write_pkcs8_pem_file(sk_path, LineEnding::default());
-        pk.write_public_key_pem_file(pk_path, LineEnding::default());
+        let _ = sk.write_pkcs8_pem_file(sk_path, LineEnding::default());
+        let _ = pk.write_public_key_pem_file(pk_path, LineEnding::default());
     }
 }
