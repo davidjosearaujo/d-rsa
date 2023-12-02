@@ -18,7 +18,18 @@
 
 ## Technologies used
 
+For this projects, the two languages selected where **Rust** and **Python**.
+
+Rust is an ideal choice for processing large numbers in RSA key generation due to its focus on **performance and safety**. Rust strikes a balance between high-performance requirements and robustness, making it well-suited for implementing the intricate calculations involved in RSA key generation.
+
+Python's simplicity is key. Its clean syntax and high-level abstractions simplify complex calculations, facilitating quick and readable implementation. While not the fastest, Python's straightforward approach makes it an accessible and efficient choice for cryptographic tasks, emphasizing simplicity and ease of development.
+
 ## Pseudo-random generator
+
+For this explanation we will focus on the Rust implementation as it is more complex to understand form the source code. Keep in mind that the Python implementation is follows as closely as possible the same 
+functions, variable names, and overall structure, so the understanding of the Rust implementation is translatable to Python.
+
+
 
 ## RSA key pair generator
 

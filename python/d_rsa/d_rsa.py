@@ -108,10 +108,8 @@ if __name__ == "__main__":
     # Inverse modulus of ƛ(n)
     d = pow(e, -1, lambda_n)
     
-    pk = PublicKey(gmpy2.to_binary(n), str(e).encode("utf-8"))
+    pk = PublicKey(gmpy2.to_binary(n), e.to_bytes((e.bit_length() + 7) // 8, 'big'))
     sk = SecretKey(gmpy2.to_binary(n), gmpy2.to_binary(d))
     kp = KeyPair(pk, sk)
-    
-    # TODO: Getting bytes from the n do not match Rust version, although, n does. makes no sense...
     
     kp.print()
