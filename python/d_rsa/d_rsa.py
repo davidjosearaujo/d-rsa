@@ -12,55 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import base64
+from Crypto.PublicKey import RSA
 import gmpy2
 from gmpy2 import mpz
-
-class KeyPair:
-    def __init__(self, pk, sk):
-        self.pk = pk
-        self.sk = sk
-        
-    def print(self):
-        pk_file = open("py_rsa_pk.pub", "w")
-        sk_file = open("py_rsa_sk.pem", "w")
-        
-        # Encoding factors of each key to Base64 stream
-        pk_stream = self.pk.encode()
-        sk_stream = self.sk.encode()
-        
-        # Writing public key file
-        pk_file.write("---------- BEGIN RSA PUBLIC KEY ----------\n")
-        for i in range(0, len(pk_stream), 64):
-            pk_file.write(pk_stream[i: i+64])
-            pk_file.write("\n")
-        pk_file.write("---------- END RSA PUBLIC KEY ----------")
-        pk_file.close()
-        
-        # Writing secret key file
-        sk_file.write("---------- BEGIN RSA PRIVATE KEY ----------\n")
-        for i in range(0, len(sk_stream), 64):
-            sk_file.write(sk_stream[i: i+64])
-            sk_file.write("\n")
-        sk_file.write("---------- END RSA PRIVATE KEY ----------")
-        sk_file.close()
-                
-class PublicKey:
-    def __init__(self, n, e):
-        self.n = n
-        self.e = e
-    
-    def encode(self):
-        return base64.b64encode(self.n).decode("utf-8") + base64.b64encode(self.e).decode("utf-8")
-
-class SecretKey:
-    def __init__(self, n, d):
-        self.n = n
-        self.d = d
-    
-    def encode(self):
-        return base64.b64encode(self.n).decode("utf-8") + base64.b64encode(self.d).decode("utf-8")
-    
+  
 def is_prime(num_str):
     num = mpz(num_str)
     return num.is_prime()
@@ -108,8 +63,14 @@ if __name__ == "__main__":
     # Inverse modulus of ƛ(n)
     d = pow(e, -1, lambda_n)
     
-    pk = PublicKey(gmpy2.to_binary(n), e.to_bytes((e.bit_length() + 7) // 8, 'big'))
-    sk = SecretKey(gmpy2.to_binary(n), gmpy2.to_binary(d))
-    kp = KeyPair(pk, sk)
+    sk = RSA.construct((n, e, d))
+    pk = sk.publickey()
     
-    kp.print()
+    with open('python.pem','wb') as pem:
+        pem.write(sk.export_key('PEM'))
+        pem.close()
+    
+    with open('python.pub','wb') as pem:
+        pem.write(pk.export_key('PEM'))
+        pem.close()
+    
