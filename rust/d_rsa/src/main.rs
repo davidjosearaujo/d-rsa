@@ -28,114 +28,16 @@
 // This is necessary as d_rsa only accepts hex string as input!!.
 
 use is_prime::*;
+use std::io;
 use num_bigint_dig::BigUint;
+use num_bigint_dig::ToBigUint;
 use num_bigint_dig::ModInverse;
 use num_integer::Integer;
 use num_traits::*;
-use std::io;
-use std::str::from_utf8;
-use std::fs::File;
-use std::io::Write;
-use base64::{engine::general_purpose, Engine as _};
-
-
-#[derive(Clone, PartialEq, Debug)]
-pub struct KeyPair {
-    pub pk: PublicKey,
-    pub sk: SecretKey,
-}
-
-#[derive(Clone, PartialEq, Debug)]
-pub struct PublicKey {
-    pub n: BigUint,
-    pub e: BigUint,
-}
-
-#[derive(Clone, PartialEq, Debug)]
-pub struct SecretKey {
-    pub n: BigUint,
-    pub d: BigUint,
-}
-
-impl KeyPair {
-    pub fn new(_pk: &PublicKey, _sk: &SecretKey) -> Result<Self, &'static str> {
-        let kp = KeyPair {
-            pk: _pk.to_owned(),
-            sk: _sk.to_owned(),
-        };
-        Ok(kp)
-    }
-
-    pub fn print(&self) {
-        let mut pk_file = File::create("rs_rsa_pk.pub").unwrap();
-        let mut sk_file = File::create("rs_rsa_sk.pem").unwrap();
-        //Ask for encoded params and write.
-        let (pk, sk) = prepare_to_print(&self);
-        pk_file.write_all(pk.as_bytes()).unwrap();
-        sk_file.write_all(sk.as_bytes()).unwrap();
-    }
-}
-
-impl PublicKey {
-    /// Generate a PublicKey struct from n and d co-prime factors.
-    pub fn new(_n: &BigUint, _e: &BigUint) -> Result<Self, &'static str> {
-        Ok(PublicKey {
-            n: _n.to_owned(),
-            e: _e.to_owned(),
-        })
-    }
-}
-
-impl SecretKey {
-    /// Generate a SecretKey struct from n and d co-prime factors.
-    pub fn new(_n: &BigUint, _d: &BigUint) -> Result<Self, &'static str> {
-        Ok(SecretKey {
-            n: _n.to_owned(),
-            d: _d.to_owned()
-        })
-    }
-}
-
-pub fn prepare_to_print(kp: &KeyPair) -> (String, String) {
-    let (mut encoded_pk, mut encoded_sk) = (String::new(), String::new());
-
-    // Encoding Public Key
-    encoded_pk.push_str("---------- BEGIN RSA PUBLIC KEY ----------");
-    encoded_pk.push_str("\n");
-    let mut binding = general_purpose::STANDARD.encode(&kp.pk.n.to_bytes_be());
-    let mut priv_n = from_utf8(binding.as_bytes()).unwrap();
-    for i in (64..priv_n.len()).step_by(64) {
-        encoded_pk.push_str(&priv_n[i-64..i]);
-        encoded_pk.push_str("\n");
-    }
-
-    binding = general_purpose::STANDARD.encode(&kp.pk.e.to_bytes_be());
-    priv_n = from_utf8(binding.as_bytes()).unwrap();
-    for i in (64..priv_n.len()).step_by(64) {
-        encoded_pk.push_str(&priv_n[i-64..i]);
-        encoded_pk.push_str("\n");
-    } 
-    encoded_pk.push_str("----------- END RSA PUBLIC KEY -----------");
-    
-    // Encoding Secret Key
-    encoded_sk.push_str("---------- BEGIN RSA PRIVATE KEY ----------");
-    encoded_sk.push_str("\n");
-    binding = general_purpose::STANDARD.encode(&kp.sk.n.to_bytes_be());
-    priv_n = from_utf8(binding.as_bytes()).unwrap();
-    for i in (64..priv_n.len()).step_by(64) {
-        encoded_sk.push_str(&priv_n[i-64..i]);
-        encoded_sk.push_str("\n");
-    }
-
-    binding = general_purpose::STANDARD.encode(&kp.sk.d.to_bytes_be());
-    priv_n = from_utf8(binding.as_bytes()).unwrap();
-    for i in (64..priv_n.len()).step_by(64) {
-        encoded_sk.push_str(&priv_n[i-64..i]);
-        encoded_sk.push_str("\n");
-    }
-    encoded_sk.push_str("----------- END RSA PRIVATE KEY -----------");
-    (encoded_pk, encoded_sk)
-}
+use std::path::Path;
+use base64ct::LineEnding;
+use rsa::{RsaPrivateKey, RsaPublicKey};
+use rsa::pkcs8::{EncodePrivateKey, EncodePublicKey};
 
 fn carmichael(p: BigUint, q: BigUint) -> BigUint {
     let phi_p = p.clone() - 1u32;
@@ -198,14 +100,19 @@ fn main() {
     e = e.pow(16u32) + 1u32;
 
     // Carmichael's totient function
-    let lambda_n = carmichael(big_prime_p, big_prime_q);
+    let lambda_n = carmichael(big_prime_p.clone(), big_prime_q.clone());
 
     // Inverse modulus of ƛ(n)
     let d = e.clone().mod_inverse(&lambda_n).unwrap();
     
-    let pk = PublicKey::new(&n, &e).unwrap();
-    let sk = SecretKey::new(&n, &d.to_biguint().unwrap()).unwrap();
+    let sk = RsaPrivateKey::from_p_q(big_prime_p, big_prime_q, e.clone()).unwrap();
+    let pk = sk.to_public_key();
 
-    let kp = KeyPair::new(&pk, &sk).unwrap();
-    kp.print();
+    // Verify validity
+    if sk.validate().unwrap() == () {
+        let sk_path = Path::new("./rust.pem");
+        let pk_path = Path::new("./rust.pub");
+        sk.write_pkcs8_pem_file(sk_path, LineEnding::default());
+        pk.write_public_key_pem_file(pk_path, LineEnding::default());
+    }
 }
