@@ -21,25 +21,29 @@ import subprocess
 import os
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        usage="""hexdump -vn256 -e'"%%08X"' /dev/urandom | python3 rsagen.py [OPTION]"""
+    )
     
     parser.add_argument(
         "-rs",
         "--rust",
-        action="store_true"
+        action="store_true",
+        help="Rust RSA key generator"
     )
     
     parser.add_argument(
         "-py",
         "--python",
-        action="store_true"
+        action="store_true",
+        help="Python RSA key generator"
     )
     
     args = parser.parse_args()
     
     print("[+] Ensuring rust binaries are compiled...")
-    os.system("cd rust/d_rsa && cargo build --release")
-    os.system("cd rust/random_generator && cargo build --release")
+    os.system("cd rust/d_rsa && cargo build --release > /dev/null 2>&1")
+    os.system("cd rust/random_generator && cargo build --release > /dev/null 2>&1")
     
     rand_stream = input()
     

@@ -29,24 +29,12 @@
 
 use is_prime::*;
 use std::io;
-use num_bigint_dig::{BigUint, ModInverse};
-use num_integer::Integer;
+use num_bigint_dig::BigUint;
 use num_traits::*;
 use std::path::Path;
 use base64ct::LineEnding;
 use rsa::RsaPrivateKey;
 use rsa::pkcs8::{EncodePrivateKey, EncodePublicKey};
-
-fn carmichael(p: BigUint, q: BigUint) -> BigUint {
-    let phi_p = p.clone() - 1u32;
-    let phi_q = q.clone() - 1u32;
-
-    if phi_p.is_zero() || phi_q.is_zero() {
-        BigUint::zero()
-    } else {
-        phi_p.lcm(&phi_q)
-    }
-}
 
 fn turn_prime(number: &mut Vec<u8>) -> BigUint {
     // Turn prime
@@ -93,12 +81,6 @@ fn main() {
     // Calculate e
     let mut e = BigUint::parse_bytes(b"2", 10).unwrap();
     e = e.pow(16u32) + 1u32;
-
-    // Carmichael's totient function
-    let lambda_n = carmichael(big_prime_p.clone(), big_prime_q.clone());
-
-    // Inverse modulus of ƛ(n)
-    let _d = e.clone().mod_inverse(&lambda_n).unwrap();
     
     let sk = RsaPrivateKey::from_p_q(big_prime_p, big_prime_q, e.clone()).unwrap();
     let pk = sk.to_public_key();

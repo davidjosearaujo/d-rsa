@@ -47,7 +47,7 @@ def speed():
         rounds_py = '--rounds=' + str(x1)
         subprocess.run(
             ['python3',
-             'python/d_rsa/d_rsa.py',
+             'python/random_generator/random_generator.py',
              rounds_py
              ],
             stdout = subprocess.DEVNULL
@@ -91,7 +91,7 @@ def speed():
         cf_arg = '--confusion_string='+str(x1_confusionstring[:x2])
         subprocess.run(
             ['python3',
-             'python/d_rsa/d_rsa.py',
+             'python/random_generator/random_generator.py',
              cf_arg
              ],
             stdout = subprocess.DEVNULL
@@ -162,9 +162,10 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     
-    print("[+] Ensuring rust binaries are compiled...")
-    os.system("cd rust/d_rsa && cargo build --release")
-    os.system("cd rust/random_generator && cargo build --release")
+    print("[+] Ensuring that Rust binaries are compiled...")
+    os.system("cd rust/d_rsa && cargo build --release > /dev/null 2>&1")
+    os.system("cd rust/random_generator && cargo build --release > /dev/null 2>&1")
+    print("[!] Rust binaries compiled!")
     
     if args.speed:
         speed()
