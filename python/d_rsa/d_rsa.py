@@ -12,6 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# *** ATTENTION ***
+# To use d_rsa with other sources of random data, like /dev/urandom or OpenSSL,
+# you must call it like:
+#
+# - /dev/urandom
+#  $ hexdump -vn256 -e'"%08X"' /dev/urandom | d_rsa
+#
+# - OpenSSL:
+#  $ openssl rand -hex 256 | d_rsa
+#
+# - random_generator:
+#  $ random_generator password cf 100 32 256 | d_rsa
+#
+# This is necessary as d_rsa only accepts hex string as input!!
+
 from Crypto.PublicKey import RSA
 import gmpy2
 from gmpy2 import mpz
@@ -63,7 +78,7 @@ if __name__ == "__main__":
     # Inverse modulus of ƛ(n)
     d = pow(e, -1, lambda_n)
     
-    sk = RSA.construct((n, e, d))
+    sk = RSA.construct((int(n), e, int(d)))
     pk = sk.publickey()
     
     with open('python.pem','wb') as pem:
