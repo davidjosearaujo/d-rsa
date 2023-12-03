@@ -46,7 +46,8 @@ def speed():
         start = time.time_ns()
         rounds_py = '--rounds=' + str(x1)
         subprocess.run(
-            ['./python/random_generator/bin/random_generator',
+            ['python3',
+             'python/d_rsa/d_rsa.py',
              rounds_py
              ],
             stdout = subprocess.DEVNULL
@@ -89,7 +90,8 @@ def speed():
         start = time.time_ns()
         cf_arg = '--confusion_string='+str(x1_confusionstring[:x2])
         subprocess.run(
-            ['./python/random_generator/bin/random_generator',
+            ['python3',
+             'python/d_rsa/d_rsa.py',
              cf_arg
              ],
             stdout = subprocess.DEVNULL
@@ -140,21 +142,29 @@ def stdout():
 
 # COMPLETE
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        usage="randgen.py [OPTION]"
+    )
     
     parser.add_argument(
         "-s",
         "--speed",
-        action="store_true"
+        action="store_true",
+        help="generate Python vs. Rust speed test graphs"
     )
     
     parser.add_argument(
         "-o",
         "--stdout",
-        action="store_true"
+        action="store_true",
+        help="print to stdout the random stream generated"
     )
     
     args = parser.parse_args()
+    
+    print("[+] Ensuring rust binaries are compiled...")
+    os.system("cd rust/d_rsa && cargo build --release")
+    os.system("cd rust/random_generator && cargo build --release")
     
     if args.speed:
         speed()

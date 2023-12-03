@@ -18,6 +18,7 @@
 
 import argparse
 import subprocess
+import os
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -36,17 +37,25 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     
+    print("[+] Ensuring rust binaries are compiled...")
+    os.system("cd rust/d_rsa && cargo build --release")
+    os.system("cd rust/random_generator && cargo build --release")
+    
     rand_stream = input()
     
     if args.rust:
+        print("[+] Generating Rust RSA keys...")
         subprocess.run(
             ['./rust/d_rsa/target/release/d_rsa'],
             input=rand_stream.encode()
         )
+        print("[!] Rust keys generated!")
         
     if args.python:
+        print("[+] Generating Python RSA keys...")
         subprocess.run(
             ['python3',
             'python/d_rsa/d_rsa.py'],
             input=rand_stream.encode() 
         )
+        print("[!] Python keys generated!")
